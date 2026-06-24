@@ -74,6 +74,22 @@ export const dictionaries: Record<Lang, Dict> = {
     "plan.addCustom": "Gewohnheit hinzufügen",
 
     "pdf.markInstructions": "Hake jeden Tag deine erreichten Ziele ab.",
+
+    "auth.signIn": "Anmelden",
+    "auth.signOut": "Abmelden",
+    "auth.login.title": "Anmelden",
+    "auth.login.subtitle": "Melde dich an, um deine Pläne zu speichern und auf allen Geräten zu nutzen.",
+    "auth.google": "Mit Google anmelden",
+    "auth.or": "oder",
+    "auth.email.label": "Mit E-Mail (Magic Link)",
+    "auth.email.placeholder": "deine@email.de",
+    "auth.email.send": "Link senden",
+    "auth.email.sent": "Prüfe deine E-Mails – wir haben dir einen Anmeldelink geschickt.",
+    "auth.email.invalid": "Bitte gib eine gültige E-Mail-Adresse ein.",
+    "auth.notConfigured": "Anmeldung ist noch nicht konfiguriert.",
+    "auth.guestNote": "Du nutzt die App als Gast. Deine Daten bleiben nur auf diesem Gerät.",
+    "auth.signedInAs": "Angemeldet als",
+    "auth.backToPlan": "Zum Plan",
   },
   en: {
     "brand": "Mental Guide",
@@ -144,6 +160,22 @@ export const dictionaries: Record<Lang, Dict> = {
     "plan.addCustom": "Add habit",
 
     "pdf.markInstructions": "Tick off the goals you reached each day.",
+
+    "auth.signIn": "Sign in",
+    "auth.signOut": "Sign out",
+    "auth.login.title": "Sign in",
+    "auth.login.subtitle": "Sign in to save your plans and use them on all your devices.",
+    "auth.google": "Sign in with Google",
+    "auth.or": "or",
+    "auth.email.label": "With email (magic link)",
+    "auth.email.placeholder": "you@email.com",
+    "auth.email.send": "Send link",
+    "auth.email.sent": "Check your inbox – we sent you a sign-in link.",
+    "auth.email.invalid": "Please enter a valid email address.",
+    "auth.notConfigured": "Sign-in is not configured yet.",
+    "auth.guestNote": "You're using the app as a guest. Your data stays on this device only.",
+    "auth.signedInAs": "Signed in as",
+    "auth.backToPlan": "Go to plan",
   },
 };
 

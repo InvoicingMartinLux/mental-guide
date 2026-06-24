@@ -3,13 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/components/LanguageProvider";
-import { addHours, loadSettings, saveSettings, Settings } from "@/lib/plan";
+import { usePlan } from "@/components/PlanProvider";
+import { addHours, Settings } from "@/lib/plan";
 
 const TOTAL_STEPS = 4;
 
 export default function QuestionnairePage() {
   const { t } = useLang();
   const router = useRouter();
+  const { ready, settings: savedSettings, updateSettings } = usePlan();
 
   const [step, setStep] = useState(0);
   const [wakeTime, setWakeTime] = useState("06:00");
@@ -21,14 +23,12 @@ export default function QuestionnairePage() {
 
   // Prefill from existing settings (edit flow).
   useEffect(() => {
-    const existing = loadSettings();
-    if (existing) {
-      setWakeTime(existing.wakeTime || "06:00");
-      setMostUsedFor(existing.mostUsedFor || "");
-      setStopWorkTime(existing.stopWorkTime || "17:00");
-      setCustomHabits(existing.customHabits || []);
-    }
-  }, []);
+    if (!ready || !savedSettings) return;
+    setWakeTime(savedSettings.wakeTime || "06:00");
+    setMostUsedFor(savedSettings.mostUsedFor || "");
+    setStopWorkTime(savedSettings.stopWorkTime || "17:00");
+    setCustomHabits(savedSettings.customHabits || []);
+  }, [ready, savedSettings]);
 
   function next() {
     setError(null);
@@ -67,7 +67,7 @@ export default function QuestionnairePage() {
       stopWorkTime,
       customHabits: customHabits.map((c) => c.trim()).filter(Boolean),
     };
-    saveSettings(settings);
+    updateSettings(settings);
     router.push("/plan");
   }
 

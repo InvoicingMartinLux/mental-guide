@@ -2,25 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useLang } from "@/components/LanguageProvider";
+import { usePlan } from "@/components/PlanProvider";
 import { dayNames } from "@/lib/i18n";
 import {
   addDays,
   buildHabits,
-  clearAll,
-  Entries,
   formatDayShort,
   Habit,
   habitLabel,
   isoDate,
-  loadEntries,
-  loadSettings,
   mondayOf,
   parseIso,
-  saveEntries,
-  saveSettings,
-  Settings,
   weekRangeLabel,
   DAYS,
 } from "@/lib/plan";
@@ -29,26 +23,11 @@ import { generatePlanPdf, PdfRow } from "@/lib/pdf";
 export default function PlanPage() {
   const { t, lang } = useLang();
   const router = useRouter();
+  const { ready, settings, entries, saving, saved, updateSettings, setEntry, reset } = usePlan();
 
-  const [ready, setReady] = useState(false);
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const [entries, setEntries] = useState<Entries>({});
   const [weekStart, setWeekStart] = useState<string>(() => isoDate(mondayOf(new Date())));
-  const [justSaved, setJustSaved] = useState(false);
-
-  useEffect(() => {
-    setSettings(loadSettings());
-    setEntries(loadEntries());
-    setReady(true);
-  }, []);
 
   const habits = useMemo(() => (settings ? buildHabits(settings) : []), [settings]);
-
-  const flashSaved = useCallback(() => {
-    setJustSaved(true);
-    const id = window.setTimeout(() => setJustSaved(false), 1200);
-    return () => window.clearTimeout(id);
-  }, []);
 
   const getValue = useCallback(
     (habitId: string, day: number): string | boolean | undefined =>
@@ -57,20 +36,9 @@ export default function PlanPage() {
   );
 
   const setValue = useCallback(
-    (habitId: string, day: number, value: string | boolean) => {
-      setEntries((prev) => {
-        const next: Entries = { ...prev };
-        const week = { ...(next[weekStart] ?? {}) };
-        const habit = { ...(week[habitId] ?? {}) };
-        habit[day] = value;
-        week[habitId] = habit;
-        next[weekStart] = week;
-        saveEntries(next);
-        return next;
-      });
-      flashSaved();
-    },
-    [weekStart, flashSaved]
+    (habitId: string, day: number, value: string | boolean) =>
+      setEntry(weekStart, habitId, day, value),
+    [weekStart, setEntry]
   );
 
   function shiftWeek(deltaWeeks: number) {
@@ -84,19 +52,15 @@ export default function PlanPage() {
   function addCustomHabit() {
     const label = window.prompt(t("q.custom.placeholder"));
     if (!label || !settings) return;
-    const updated: Settings = {
+    updateSettings({
       ...settings,
       customHabits: [...settings.customHabits, label.trim()].filter(Boolean),
-    };
-    saveSettings(updated);
-    setSettings(updated);
+    });
   }
 
   function resetPlan() {
     if (!window.confirm(t("plan.reset.confirm"))) return;
-    clearAll();
-    setSettings(null);
-    setEntries({});
+    reset();
     router.push("/questionnaire");
   }
 
@@ -108,7 +72,10 @@ export default function PlanPage() {
     const rows: PdfRow[] = habits.map((h) => ({
       label: habitLabel(h, settings, lang),
       type: h.type,
-      values: Array.from({ length: DAYS }, (_, d) => getValue(h.id, d) ?? (h.type === "time" ? "" : false)),
+      values: Array.from(
+        { length: DAYS },
+        (_, d) => getValue(h.id, d) ?? (h.type === "time" ? "" : false)
+      ),
     }));
 
     generatePlanPdf(
@@ -118,7 +85,7 @@ export default function PlanPage() {
         weekValue: weekRangeLabel(weekStart, lang),
         summary: [
           { label: t("plan.summary.wake"), value: settings.wakeTime },
-          { label: t("plan.summary.firstUse"), value: buildHabits(settings)[0].target ?? "" },
+          { label: t("plan.summary.firstUse"), value: habits[0]?.target ?? "" },
           { label: t("plan.summary.activity"), value: settings.mostUsedFor },
           { label: t("plan.summary.stopWork"), value: settings.stopWorkTime },
         ],
@@ -165,7 +132,9 @@ export default function PlanPage() {
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {justSaved && <span className="text-xs text-brand-600">✓ {t("plan.saved")}</span>}
+          <span className="min-w-[5rem] text-right text-xs text-brand-600">
+            {saving ? "…" : saved ? `✓ ${t("plan.saved")}` : ""}
+          </span>
           <button onClick={downloadPdf} className="btn-primary">
             ⬇ {t("plan.download")}
           </button>
@@ -193,7 +162,7 @@ export default function PlanPage() {
         {/* Summary */}
         <div className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-brand-50 p-3 text-sm sm:grid-cols-4">
           <SummaryItem label={t("plan.summary.wake")} value={settings.wakeTime} />
-          <SummaryItem label={t("plan.summary.firstUse")} value={habits[0].target ?? ""} />
+          <SummaryItem label={t("plan.summary.firstUse")} value={habits[0]?.target ?? ""} />
           <SummaryItem label={t("plan.summary.activity")} value={settings.mostUsedFor} />
           <SummaryItem label={t("plan.summary.stopWork")} value={settings.stopWorkTime} />
         </div>
