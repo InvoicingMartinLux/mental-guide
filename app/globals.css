@@ -2,29 +2,291 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   WellPath design tokens
+   Warm, approachable, wellness-oriented — design that feels like a deep breath.
+--------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
+
+  /* Color */
+  --wp-primary: #7c9a6e;
+  --wp-primary-hover: #6b8a5d;
+  --wp-secondary: #b4a7d6;
+  --wp-tertiary: #ffcba4;
+  --wp-neutral: #a8a29e;
+  --wp-background: #faf8ff;
+  --wp-surface: #ffffff;
+  --wp-success: #7c9a6e;
+  --wp-warning: #e0a849;
+  --wp-error: #c97a7a;
+  --wp-info: #b4a7d6;
+  --wp-ink: #2d2b32;
+  --wp-muted: #6b6772;
+  --wp-border: #e8e4ee;
+  --wp-border-strong: #d1cbd9;
+  --wp-tint: #f5f0fb;
+
+  /* Elevation */
+  --wp-shadow-subtle: 4px 4px 8px rgba(174, 168, 186, 0.15),
+    -4px -4px 8px rgba(255, 255, 255, 0.7);
+  --wp-shadow-medium: 6px 6px 14px rgba(174, 168, 186, 0.2),
+    -6px -6px 14px rgba(255, 255, 255, 0.8);
+  --wp-shadow-inner: inset 3px 3px 6px rgba(174, 168, 186, 0.2),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.7);
 }
 
-body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+@layer base {
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-feature-settings: "kern";
+  }
+
+  /* Calm, never jarring: honour reduced-motion preferences. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  ::selection {
+    @apply bg-lavender-100 text-ink;
+  }
 }
 
 @layer components {
-  .input {
-    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200;
+  /* --- Typography scale ------------------------------------------------- */
+  .type-display {
+    @apply font-display text-[40px] font-extrabold leading-[1.2] tracking-[0.02em];
+  }
+
+  .type-headline {
+    @apply font-display text-[32px] font-bold leading-[1.25] tracking-[0.01em];
+  }
+
+  .type-subhead {
+    @apply font-display text-[22px] font-semibold leading-[1.35];
+  }
+
+  .type-body-lg {
+    @apply text-lg font-normal leading-[1.6] tracking-[0.01em];
+  }
+
+  .type-body {
+    @apply text-base font-normal leading-[1.6] tracking-[0.01em];
+  }
+
+  .type-body-sm {
+    @apply text-sm font-normal leading-[1.5] tracking-[0.01em];
+  }
+
+  .type-caption {
+    @apply text-xs font-medium leading-[1.4] tracking-[0.02em];
+  }
+
+  .type-overline {
+    @apply text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.08em];
+  }
+
+  .type-code {
+    @apply font-mono text-sm font-normal leading-[1.6];
+  }
+
+  /* --- Buttons ---------------------------------------------------------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg font-semibold
+      transition-all duration-200 ease-out
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-lavender
+      disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none;
   }
 
   .btn-primary {
-    @apply rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700;
+    @apply btn bg-sage text-white shadow-subtle
+      hover:bg-sage-600 hover:shadow-medium
+      active:bg-sage-600 active:shadow-inner
+      disabled:hover:bg-sage disabled:hover:shadow-none;
   }
 
   .btn-secondary {
-    @apply rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100;
+    @apply btn border border-lavender bg-lavender-50 text-sage-ink
+      hover:bg-lavender-100 disabled:hover:bg-lavender-50;
   }
 
   .btn-ghost {
-    @apply rounded-md px-3 py-2 font-medium text-slate-600 transition-colors hover:bg-slate-100;
+    @apply btn bg-transparent text-sage-ink
+      hover:bg-lavender-50 disabled:hover:bg-transparent;
+  }
+
+  .btn-destructive {
+    @apply btn bg-danger text-white shadow-subtle
+      hover:bg-danger-600 hover:shadow-medium
+      disabled:hover:bg-danger disabled:hover:shadow-none;
+  }
+
+  /* Sizes come last so they always win over a variant's default height.
+     Height / horizontal padding / font size, per the WellPath spec. */
+  .btn-sm {
+    @apply h-9 px-4 text-sm;
+  }
+
+  .btn-md {
+    @apply h-11 px-6 text-base;
+  }
+
+  .btn-lg {
+    @apply h-[52px] px-8 text-lg;
+  }
+
+  /* --- Cards ------------------------------------------------------------ */
+  .card {
+    @apply rounded-lg border border-lavender-200 bg-surface p-6 shadow-subtle
+      transition-shadow duration-200 ease-out
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-lavender;
+  }
+
+  .card-elevated {
+    @apply rounded-lg border-0 bg-surface p-6 shadow-medium
+      transition-shadow duration-200 ease-out
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-lavender;
+  }
+
+  .card-interactive {
+    @apply hover:shadow-medium;
+  }
+
+  /* --- Inputs ----------------------------------------------------------- */
+  .input {
+    @apply h-11 w-full rounded-md border border-lavender-300 bg-surface px-4 py-3
+      text-base text-ink shadow-inner outline-none
+      transition-colors duration-200 ease-out
+      placeholder:text-warmgray
+      hover:border-lavender
+      focus:border-2 focus:border-sage focus:px-[15px]
+      disabled:border-lavender-200 disabled:bg-lavender-50 disabled:text-warmgray
+      disabled:shadow-none;
+  }
+
+  .input-error {
+    @apply border-2 border-danger bg-danger-tint px-[15px] hover:border-danger focus:border-danger;
+  }
+
+  .field-label {
+    @apply mb-1 block text-sm font-semibold text-ink;
+  }
+
+  .field-help {
+    @apply mt-1 text-xs font-normal text-muted;
+  }
+
+  /* --- Chips ------------------------------------------------------------ */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-lavender-200
+      bg-lavender-50 px-3.5 py-1.5 text-[13px] font-medium text-muted
+      transition-colors duration-200 ease-out;
+  }
+
+  .chip-active {
+    @apply border-transparent bg-sage text-white;
+  }
+
+  .status-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .status-chip-success {
+    @apply bg-success-bg text-success-ink;
+  }
+
+  .status-chip-warning {
+    @apply bg-warning-bg text-warning-ink;
+  }
+
+  .status-chip-info {
+    @apply bg-info-bg text-info-ink;
+  }
+
+  .status-chip-error {
+    @apply bg-danger-bg text-danger-ink;
+  }
+
+  /* --- Lists ------------------------------------------------------------ */
+  .list-item {
+    @apply flex min-h-[52px] items-center gap-3 px-4 py-3 text-base text-ink
+      transition-colors duration-200 ease-out hover:bg-lavender-50;
+  }
+
+  .list-item-selected {
+    @apply border-l-[3px] border-sage bg-success-bg;
+  }
+
+  .list-divider {
+    @apply border-b border-lavender-200;
+  }
+
+  /* --- Selection controls ----------------------------------------------- */
+  .checkbox {
+    @apply h-5 w-5 flex-none cursor-pointer appearance-none rounded-[6px] border-2
+      border-lavender-300 bg-surface bg-center bg-no-repeat
+      transition-all duration-200 ease-out
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-lavender
+      disabled:cursor-not-allowed disabled:border-lavender-200 disabled:bg-lavender-50
+      disabled:opacity-50;
+  }
+
+  .checkbox:checked,
+  .checkbox:indeterminate {
+    @apply border-sage bg-sage;
+  }
+
+  .checkbox:checked {
+    /* White checkmark */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 10.5l3.2 3.2L15 7'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .checkbox:indeterminate {
+    /* White dash */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M5.5 10h9'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .checkbox-label {
+    @apply ml-2 text-base font-normal text-ink;
+  }
+
+  .radio {
+    @apply h-5 w-5 flex-none cursor-pointer appearance-none rounded-full border-2
+      border-lavender-300 bg-surface bg-center bg-no-repeat
+      transition-all duration-200 ease-out
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-lavender
+      disabled:cursor-not-allowed disabled:border-lavender-200 disabled:opacity-50;
+  }
+
+  .radio:checked {
+    @apply border-sage;
+    /* 10px inner dot */
+    background-image: radial-gradient(circle, #7c9a6e 0 5px, transparent 5px);
+  }
+
+  /* --- Tooltip ---------------------------------------------------------- */
+  .tooltip {
+    @apply pointer-events-none absolute z-20 max-w-[240px] rounded-sm bg-ink px-3 py-2
+      text-[13px] font-normal text-white opacity-0 shadow-overlay
+      transition-all duration-150 ease-out;
+  }
+
+  .tooltip-host:hover .tooltip,
+  .tooltip-host:focus-within .tooltip {
+    @apply -translate-y-1 opacity-100;
   }
 }
 

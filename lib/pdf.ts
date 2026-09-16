@@ -1,6 +1,16 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+/** WellPath palette, as RGB tuples for jsPDF. */
+const WP = {
+  ink: [45, 43, 50] as [number, number, number],
+  muted: [107, 103, 114] as [number, number, number],
+  sage: [124, 154, 110] as [number, number, number],
+  sageTint: [237, 245, 235] as [number, number, number],
+  border: [232, 228, 238] as [number, number, number],
+  borderStrong: [209, 203, 217] as [number, number, number],
+};
+
 export type PdfRow = {
   label: string;
   type: "time" | "check";
@@ -27,21 +37,23 @@ export function generatePlanPdf(plan: PdfPlan, filename: string): void {
   // Title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
+  doc.setTextColor(...WP.ink);
   doc.text(plan.title, marginX, y);
 
   // Week
   y += 8;
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
+  doc.setTextColor(...WP.muted);
   doc.text(`${plan.weekLabel}: ${plan.weekValue}`, marginX, y);
 
   // Summary line(s)
   y += 7;
   doc.setFontSize(10);
-  doc.setTextColor(80);
+  doc.setTextColor(...WP.muted);
   const summaryText = plan.summary.map((s) => `${s.label}: ${s.value}`).join("    |    ");
   doc.text(summaryText, marginX, y);
-  doc.setTextColor(0);
+  doc.setTextColor(...WP.ink);
 
   y += 6;
 
@@ -60,12 +72,13 @@ export function generatePlanPdf(plan: PdfPlan, filename: string): void {
       fontSize: 10,
       cellPadding: 2.5,
       valign: "middle",
-      lineColor: [180, 180, 180],
+      textColor: WP.ink,
+      lineColor: WP.border,
       lineWidth: 0.2,
       minCellHeight: 11,
     },
     headStyles: {
-      fillColor: [34, 110, 82],
+      fillColor: WP.sage,
       textColor: 255,
       halign: "center",
       fontStyle: "bold",
@@ -93,10 +106,12 @@ export function generatePlanPdf(plan: PdfPlan, filename: string): void {
       const cy = data.cell.y + data.cell.height / 2;
       const x = cx - size / 2;
       const yy = cy - size / 2;
-      doc.setDrawColor(120);
-      doc.setLineWidth(0.3);
-      doc.rect(x, yy, size, size);
-      if (value === true) {
+      const checked = value === true;
+      doc.setDrawColor(...(checked ? WP.sage : WP.borderStrong));
+      doc.setFillColor(...WP.sageTint);
+      doc.setLineWidth(checked ? 0.5 : 0.3);
+      doc.rect(x, yy, size, size, checked ? "FD" : "S");
+      if (checked) {
         doc.setLineWidth(0.6);
         doc.line(x + 1, cy, cx - 0.3, yy + size - 1);
         doc.line(cx - 0.3, yy + size - 1, x + size, yy + 0.8);
@@ -106,7 +121,7 @@ export function generatePlanPdf(plan: PdfPlan, filename: string): void {
 
   const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
   doc.setFontSize(9);
-  doc.setTextColor(110);
+  doc.setTextColor(...WP.muted);
   doc.text(plan.instructions, marginX, finalY + 7);
 
   doc.save(filename);

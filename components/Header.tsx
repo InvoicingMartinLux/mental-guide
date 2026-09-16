@@ -10,28 +10,31 @@ export function Header() {
   const { configured, ready: authReady, user, signOut } = useAuth();
 
   return (
-    <header className="border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
+    <header className="sticky top-0 z-10 border-b border-lavender-200 bg-canvas/85 backdrop-blur print:hidden">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-lg">
+        <Link
+          href="/"
+          className="flex items-center gap-3 rounded-lg transition-transform duration-200 ease-out hover:-translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sage-50 text-xl shadow-subtle">
             🌱
           </span>
           <span className="flex flex-col leading-tight">
-            <span className="font-semibold text-slate-900">{t("brand")}</span>
-            <span className="hidden text-xs text-slate-500 sm:block">{t("tagline")}</span>
+            <span className="whitespace-nowrap font-display text-lg font-bold text-ink">{t("brand")}</span>
+            <span className="hidden type-caption text-muted sm:block">{t("tagline")}</span>
           </span>
         </Link>
 
         <nav className="flex items-center gap-1">
           <Link
             href="/"
-            className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-colors duration-200 ease-out hover:bg-lavender-50 hover:text-sage-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender"
           >
             {t("nav.home")}
           </Link>
           <Link
             href="/plan"
-            className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-colors duration-200 ease-out hover:bg-lavender-50 hover:text-sage-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender"
           >
             {t("nav.plan")}
           </Link>
@@ -41,7 +44,7 @@ export function Header() {
               {user ? (
                 <>
                   <span
-                    className="hidden max-w-[12rem] truncate text-xs text-slate-500 md:inline"
+                    className="hidden max-w-[12rem] truncate type-caption text-muted md:inline"
                     title={user.email ?? undefined}
                   >
                     {user.email}
@@ -49,33 +52,30 @@ export function Header() {
                   <button
                     type="button"
                     onClick={() => signOut()}
-                    className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                    className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-colors duration-200 ease-out hover:bg-lavender-50 hover:text-sage-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender"
                   >
                     {t("auth.signOut")}
                   </button>
                 </>
               ) : (
-                <Link
-                  href="/login"
-                  className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700"
-                >
+                <Link href="/login" className="btn-primary btn-sm">
                   {t("auth.signIn")}
                 </Link>
               )}
             </div>
           )}
 
-          <div className="ml-2 flex overflow-hidden rounded-md border border-slate-200">
+          <div className="ml-2 flex gap-1 rounded-full bg-lavender-50 p-1 shadow-inner">
             {LANGS.map((l) => (
               <button
                 key={l}
                 type="button"
                 onClick={() => setLang(l)}
                 aria-pressed={lang === l}
-                className={`px-2.5 py-1.5 text-xs font-semibold uppercase transition-colors ${
+                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] transition-colors duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender ${
                   lang === l
-                    ? "bg-brand-600 text-white"
-                    : "bg-white text-slate-500 hover:bg-slate-100"
+                    ? "bg-sage text-white shadow-subtle"
+                    : "text-muted hover:text-sage-ink"
                 }`}
               >
                 {l}

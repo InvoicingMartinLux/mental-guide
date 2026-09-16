@@ -72,22 +72,29 @@ export default function QuestionnairePage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
-      <div className="mb-2 text-sm font-medium text-brand-700">
+    <div className="mx-auto max-w-xl px-4 py-12">
+      <span className="status-chip status-chip-info">
         {t("q.step", { n: step + 1, total: TOTAL_STEPS })}
-      </div>
-      <h1 className="text-2xl font-bold text-slate-900">{t("q.title")}</h1>
-      <p className="mt-1 text-slate-600">{t("q.subtitle")}</p>
+      </span>
+      <h1 className="mt-4 type-subhead text-ink sm:text-[32px] sm:font-bold sm:leading-[1.25] sm:tracking-[0.01em]">{t("q.title")}</h1>
+      <p className="mt-2 type-body text-muted">{t("q.subtitle")}</p>
 
       {/* progress bar */}
-      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+      <div
+        className="mt-6 h-2 w-full overflow-hidden rounded-full bg-lavender-50 shadow-inner"
+        role="progressbar"
+        aria-valuenow={step + 1}
+        aria-valuemin={1}
+        aria-valuemax={TOTAL_STEPS}
+        aria-label={t("q.step", { n: step + 1, total: TOTAL_STEPS })}
+      >
         <div
-          className="h-full rounded-full bg-brand-600 transition-all"
+          className="h-full rounded-full bg-sage transition-all duration-300 ease-out"
           style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
         />
       </div>
 
-      <div className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div key={step} className="card-elevated mt-8 animate-fade-up">
         {step === 0 && (
           <Field label={t("q.wake.label")} help={t("q.wake.help")}>
             <input
@@ -96,7 +103,8 @@ export default function QuestionnairePage() {
               onChange={(e) => setWakeTime(e.target.value)}
               className="input"
             />
-            <p className="mt-3 rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800">
+            <p className="mt-4 rounded-md bg-success-bg px-4 py-3 type-body-sm text-success-ink">
+              <span aria-hidden="true">🌅 </span>
               {t("q.firstUseInfo", { time: addHours(wakeTime, 1) })}
             </p>
           </Field>
@@ -109,7 +117,8 @@ export default function QuestionnairePage() {
               value={mostUsedFor}
               onChange={(e) => setMostUsedFor(e.target.value)}
               placeholder={t("q.most.placeholder")}
-              className="input"
+              className={`input ${error ? "input-error" : ""}`}
+              aria-invalid={error ? true : undefined}
               autoFocus
             />
           </Field>
@@ -128,7 +137,7 @@ export default function QuestionnairePage() {
 
         {step === 3 && (
           <Field label={t("q.custom.label")} help={t("q.custom.help")}>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={customInput}
@@ -142,30 +151,26 @@ export default function QuestionnairePage() {
                 placeholder={t("q.custom.placeholder")}
                 className="input flex-1"
               />
-              <button
-                type="button"
-                onClick={addCustom}
-                className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-              >
+              <button type="button" onClick={addCustom} className="btn-primary btn-md shrink-0">
                 {t("q.custom.add")}
               </button>
             </div>
 
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-6 flex flex-wrap gap-2">
               {customHabits.length === 0 && (
-                <li className="text-sm text-slate-400">{t("q.custom.none")}</li>
+                <li className="rounded-md border border-dashed border-lavender-300 bg-lavender-50/60 px-4 py-3 type-body-sm text-muted">
+                  <span aria-hidden="true">🌿 </span>
+                  {t("q.custom.none")}
+                </li>
               )}
               {customHabits.map((habit, i) => (
-                <li
-                  key={i}
-                  className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
-                >
+                <li key={`${habit}-${i}`} className="chip">
                   <span>{habit}</span>
                   <button
                     type="button"
                     onClick={() => removeCustom(i)}
-                    className="text-slate-400 hover:text-red-600"
-                    aria-label={t("q.custom.remove")}
+                    className="rounded-full px-1 text-warmgray transition-colors duration-200 ease-out hover:text-danger-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender"
+                    aria-label={`${t("q.custom.remove")}: ${habit}`}
                   >
                     ✕
                   </button>
@@ -175,32 +180,29 @@ export default function QuestionnairePage() {
           </Field>
         )}
 
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p role="alert" className="status-chip status-chip-error mt-4">
+            <span aria-hidden="true">!</span>
+            {error}
+          </p>
+        )}
 
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-8 flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={back}
             disabled={step === 0}
-            className="rounded-md px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+            className="btn-ghost btn-sm"
           >
-            ← {t("q.back")}
+            <span aria-hidden="true">←</span> {t("q.back")}
           </button>
 
           {step < TOTAL_STEPS - 1 ? (
-            <button
-              type="button"
-              onClick={next}
-              className="rounded-md bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-            >
-              {t("q.next")} →
+            <button type="button" onClick={next} className="btn-primary btn-md">
+              {t("q.next")} <span aria-hidden="true">→</span>
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={generate}
-              className="rounded-md bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-            >
+            <button type="button" onClick={generate} className="btn-primary btn-md">
               {t("q.generate")}
             </button>
           )}
@@ -221,8 +223,8 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-lg font-semibold text-slate-900">{label}</label>
-      <p className="mt-1 mb-4 text-sm text-slate-500">{help}</p>
+      <label className="block type-subhead text-ink">{label}</label>
+      <p className="mt-2 mb-5 type-body-sm text-muted">{help}</p>
       {children}
     </div>
   );
