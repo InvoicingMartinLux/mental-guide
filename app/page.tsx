@@ -13,45 +13,59 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
       {/* Hero */}
-      <section className="text-center">
-        <h1 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-          {t("home.heroTitle")}
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-slate-600">{t("home.heroSubtitle")}</p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/questionnaire"
-            className="rounded-lg bg-brand-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
-          >
-            {t("home.start")}
-          </Link>
-          <Link
-            href="/plan"
-            className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-          >
-            {t("home.openPlan")}
-          </Link>
+      <section className="relative overflow-hidden rounded-xl bg-surface px-6 py-12 text-center shadow-medium sm:px-12 sm:py-16">
+        {/* Soft breathing halo — a quiet invitation to slow down. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 animate-breathe rounded-full bg-peach/40 blur-3xl"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 animate-breathe rounded-full bg-lavender/30 blur-3xl [animation-delay:2s]"
+        />
+
+        <div className="relative">
+          <span className="status-chip status-chip-info">🌿 {t("tagline")}</span>
+          <h1 className="mx-auto mt-6 max-w-2xl type-headline text-ink sm:text-[40px] sm:font-extrabold sm:leading-[1.2] sm:tracking-[0.02em]">
+            {t("home.heroTitle")}
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl type-body-lg text-muted">
+            {t("home.heroSubtitle")}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link href="/questionnaire" className="btn-primary btn-lg">
+              {t("home.start")}
+            </Link>
+            <Link href="/plan" className="btn-secondary btn-lg">
+              {t("home.openPlan")}
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Areas */}
-      <section className="mt-16">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-          {t("home.chooseArea")}
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-12 sm:mt-section">
+        <h2 className="mb-6 type-overline text-muted">{t("home.chooseArea")}</h2>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* Active: phone usage */}
           <Link
             href="/questionnaire"
-            className="group relative flex flex-col rounded-xl border border-brand-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+            className="card card-interactive group flex flex-col transition-transform duration-200 ease-out hover:-translate-y-1"
           >
-            <span className="text-3xl">📵</span>
-            <h3 className="mt-3 font-semibold text-slate-900">{t("home.area.phone.title")}</h3>
-            <p className="mt-1 text-sm text-slate-600">{t("home.area.phone.desc")}</p>
-            <span className="mt-4 inline-flex items-center text-sm font-semibold text-brand-700 group-hover:underline">
-              {t("home.start")} →
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sage-50 text-2xl">
+              📵
+            </span>
+            <h3 className="mt-4 font-display text-lg font-bold text-ink">
+              {t("home.area.phone.title")}
+            </h3>
+            <p className="mt-2 type-body-sm text-muted">{t("home.area.phone.desc")}</p>
+            <span className="mt-auto pt-5 inline-flex items-center gap-1 text-sm font-semibold text-sage-ink">
+              {t("home.start")}
+              <span aria-hidden="true" className="transition-transform duration-200 ease-out group-hover:translate-x-1">
+                →
+              </span>
             </span>
           </Link>
 
@@ -59,14 +73,19 @@ export default function HomePage() {
           {comingSoon.map((area) => (
             <div
               key={area.key}
-              className="flex flex-col rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 opacity-80"
+              className="flex flex-col rounded-lg border border-dashed border-lavender-300 bg-lavender-50/60 p-6"
             >
-              <span className="text-3xl grayscale">{area.icon}</span>
-              <h3 className="mt-3 font-semibold text-slate-700">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-surface text-2xl opacity-70">
+                {area.icon}
+              </span>
+              <h3 className="mt-4 font-display text-lg font-bold text-muted">
                 {t(`home.area.${area.key}.title`)}
               </h3>
-              <span className="mt-4 inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                {t("home.area.comingSoon")}
+              <span className="mt-auto pt-5">
+                <span className="status-chip status-chip-info">
+                  <span aria-hidden="true">🌱</span>
+                  {t("home.area.comingSoon")}
+                </span>
               </span>
             </div>
           ))}
