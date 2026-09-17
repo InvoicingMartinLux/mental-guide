@@ -23,7 +23,17 @@ import { generatePlanPdf, PdfRow } from "@/lib/pdf";
 export default function PlanPage() {
   const { t, lang } = useLang();
   const router = useRouter();
-  const { ready, settings, entries, saving, saved, updateSettings, setEntry, reset } = usePlan();
+  const {
+    ready,
+    settings,
+    entries,
+    saving,
+    saved,
+    cloudOffline,
+    updateSettings,
+    setEntry,
+    reset,
+  } = usePlan();
 
   const [weekStart, setWeekStart] = useState<string>(() => isoDate(mondayOf(new Date())));
 
@@ -99,19 +109,40 @@ export default function PlanPage() {
   }
 
   if (!ready) {
-    return <div className="mx-auto max-w-5xl px-4 py-16 text-slate-400">…</div>;
+    return (
+      <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-16 type-body text-muted">
+        <span
+          aria-hidden="true"
+          className="h-3 w-3 animate-breathe rounded-full bg-sage"
+        />
+        …
+      </div>
+    );
   }
 
   if (!settings) {
     return (
-      <div className="mx-auto max-w-xl px-4 py-20 text-center">
-        <p className="text-lg text-slate-600">{t("plan.noPlan")}</p>
-        <Link
-          href="/questionnaire"
-          className="mt-6 inline-block rounded-lg bg-brand-600 px-6 py-3 font-semibold text-white hover:bg-brand-700"
-        >
-          {t("plan.createFirst")}
-        </Link>
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <div className="card-elevated text-center">
+          <span
+            aria-hidden="true"
+            className="mx-auto flex h-16 w-16 animate-breathe items-center justify-center rounded-full bg-sage-50 text-3xl"
+          >
+            🌱
+          </span>
+          <p className="mt-6 type-body-lg text-ink">{t("plan.noPlan")}</p>
+          {cloudOffline && (
+            // Otherwise a signed-in user whose device has no local copy would
+            // read this as "my plan is gone" rather than "we can't reach it".
+            <p role="status" className="status-chip status-chip-warning mt-4">
+              <span aria-hidden="true">⚠</span>
+              {t("plan.offlineEmpty")}
+            </p>
+          )}
+          <Link href="/questionnaire" className="btn-primary btn-lg mt-6">
+            {t("plan.createFirst")}
+          </Link>
+        </div>
       </div>
     );
   }
@@ -119,48 +150,68 @@ export default function PlanPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       {/* Toolbar */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <div className="flex items-center gap-2">
-          <button onClick={() => shiftWeek(-1)} className="btn-ghost" aria-label={t("plan.prevWeek")}>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center gap-1 rounded-full bg-lavender-50 p-1 shadow-inner">
+          <button
+            onClick={() => shiftWeek(-1)}
+            className="btn-ghost btn-sm rounded-full px-3"
+            aria-label={t("plan.prevWeek")}
+          >
             ←
           </button>
-          <button onClick={goThisWeek} className="btn-ghost text-sm">
+          <button onClick={goThisWeek} className="btn-ghost btn-sm rounded-full">
             {t("plan.thisWeek")}
           </button>
-          <button onClick={() => shiftWeek(1)} className="btn-ghost" aria-label={t("plan.nextWeek")}>
+          <button
+            onClick={() => shiftWeek(1)}
+            className="btn-ghost btn-sm rounded-full px-3"
+            aria-label={t("plan.nextWeek")}
+          >
             →
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="min-w-[5rem] text-right text-xs text-brand-600">
-            {saving ? "…" : saved ? `✓ ${t("plan.saved")}` : ""}
+          <span aria-live="polite" className="min-w-[5rem] text-right">
+            {saving ? (
+              <span className="type-caption text-muted">…</span>
+            ) : cloudOffline ? (
+              <span className="status-chip status-chip-warning" title={t("plan.offline")}>
+                <span aria-hidden="true">⚠</span>
+                {t("plan.offline")}
+              </span>
+            ) : saved ? (
+              <span className="status-chip status-chip-success">
+                <span aria-hidden="true">✓</span>
+                {t("plan.saved")}
+              </span>
+            ) : null}
           </span>
-          <button onClick={downloadPdf} className="btn-primary">
-            ⬇ {t("plan.download")}
+          <button onClick={downloadPdf} className="btn-primary btn-sm">
+            <span aria-hidden="true">⬇</span> {t("plan.download")}
           </button>
-          <button onClick={() => window.print()} className="btn-secondary">
-            🖨 {t("plan.print")}
+          <button onClick={() => window.print()} className="btn-secondary btn-sm">
+            <span aria-hidden="true">🖨</span> {t("plan.print")}
           </button>
-          <Link href="/questionnaire" className="btn-secondary">
+          <Link href="/questionnaire" className="btn-secondary btn-sm">
             {t("plan.edit")}
           </Link>
-          <button onClick={resetPlan} className="btn-ghost text-sm text-red-600">
+          <button onClick={resetPlan} className="btn-ghost btn-sm text-danger-ink hover:bg-danger-bg">
             {t("plan.reset")}
           </button>
         </div>
       </div>
 
       {/* Printable plan */}
-      <div className="print-area rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-xl font-bold text-slate-900">{t("plan.title")}</h1>
-          <div className="text-sm font-medium text-slate-600">
+      <div className="print-area rounded-xl bg-surface p-6 shadow-medium sm:p-8">
+        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="type-subhead text-ink">{t("plan.title")}</h1>
+          <div className="type-body-sm font-medium text-muted">
             {t("plan.week")}: {weekRangeLabel(weekStart, lang)}
           </div>
         </div>
 
         {/* Summary */}
-        <div className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-brand-50 p-3 text-sm sm:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg bg-sage-50 p-4 sm:grid-cols-4">
           <SummaryItem label={t("plan.summary.wake")} value={settings.wakeTime} />
           <SummaryItem label={t("plan.summary.firstUse")} value={habits[0]?.target ?? ""} />
           <SummaryItem label={t("plan.summary.activity")} value={settings.mostUsedFor} />
@@ -172,16 +223,16 @@ export default function PlanPage() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="border border-slate-200 bg-slate-50 p-2 text-left font-semibold text-slate-700">
+                <th className="rounded-tl-md border-b border-lavender-200 bg-lavender-50 p-3 text-left type-caption uppercase tracking-[0.08em] text-muted">
                   {t("plan.col.habit")}
                 </th>
                 {dayNames[lang].map((name, i) => (
                   <th
                     key={name}
-                    className="border border-slate-200 bg-slate-50 p-2 text-center font-semibold text-slate-700"
+                    className="border-b border-l border-lavender-200 bg-lavender-50 p-3 text-center font-display text-sm font-bold text-ink last:rounded-tr-md"
                   >
                     <div>{name}</div>
-                    <div className="text-xs font-normal text-slate-400">
+                    <div className="type-caption font-normal text-muted">
                       {formatDayShort(addDays(parseIso(weekStart), i), lang)}
                     </div>
                   </th>
@@ -202,12 +253,15 @@ export default function PlanPage() {
           </table>
         </div>
 
-        <p className="mt-4 text-xs text-slate-500">{t("plan.legend")}</p>
+        <p className="mt-5 type-body-sm text-muted">
+          <span aria-hidden="true">💡 </span>
+          {t("plan.legend")}
+        </p>
       </div>
 
-      <div className="mt-3 print:hidden">
-        <button onClick={addCustomHabit} className="btn-ghost text-sm text-brand-700">
-          + {t("plan.addCustom")}
+      <div className="mt-4 print:hidden">
+        <button onClick={addCustomHabit} className="btn-ghost btn-sm">
+          <span aria-hidden="true">+</span> {t("plan.addCustom")}
         </button>
       </div>
     </div>
@@ -217,8 +271,8 @@ export default function PlanPage() {
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-brand-700/70">{label}</div>
-      <div className="font-semibold text-slate-900">{value || "–"}</div>
+      <div className="type-overline text-sage-ink">{label}</div>
+      <div className="mt-1 font-display text-base font-bold text-ink">{value || "–"}</div>
     </div>
   );
 }
@@ -235,25 +289,33 @@ function HabitRow({
   setValue: (id: string, day: number, value: string | boolean) => void;
 }) {
   return (
-    <tr>
-      <td className="border border-slate-200 p-2 font-medium text-slate-800">{label}</td>
+    <tr className="border-b border-lavender-200 transition-colors duration-200 ease-out hover:bg-lavender-50/60">
+      <td className="p-3 type-body-sm font-medium text-ink">{label}</td>
       {Array.from({ length: DAYS }, (_, day) => {
         const value = getValue(habit.id, day);
+        const done = value === true;
         return (
-          <td key={day} className="border border-slate-200 p-1 text-center">
+          <td
+            key={day}
+            className={`border-l border-lavender-200 p-2 text-center transition-colors duration-200 ease-out ${
+              done ? "bg-success-bg" : ""
+            }`}
+          >
             {habit.type === "time" ? (
               <input
                 type="time"
                 value={typeof value === "string" ? value : ""}
                 onChange={(e) => setValue(habit.id, day, e.target.value)}
-                className="w-full min-w-[5.5rem] rounded border border-slate-200 px-1 py-1 text-center text-xs focus:border-brand-500 focus:outline-none"
+                aria-label={label}
+                className="h-9 w-full min-w-[5.5rem] rounded-md border border-lavender-300 bg-surface px-2 text-center text-xs text-ink shadow-inner outline-none transition-colors duration-200 ease-out hover:border-lavender focus:border-2 focus:border-sage"
               />
             ) : (
               <input
                 type="checkbox"
-                checked={value === true}
+                checked={done}
                 onChange={(e) => setValue(habit.id, day, e.target.checked)}
-                className="h-5 w-5 cursor-pointer accent-brand-600"
+                aria-label={label}
+                className="checkbox mx-auto"
               />
             )}
           </td>
