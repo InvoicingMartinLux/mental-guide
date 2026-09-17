@@ -12,20 +12,48 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Which control the current error belongs to, so only that one turns red. */
+  const [errorField, setErrorField] = useState<"email" | "google" | null>(null);
   const [busy, setBusy] = useState(false);
+
+  /** Known sentinels get a friendly message; anything else is shown verbatim. */
+  function describeError(code: string): string {
+    if (code === "unreachable") return t("auth.error.unreachable");
+    if (code === "not-configured") return t("auth.notConfigured");
+    return code;
+  }
+
+  function fail(field: "email" | "google", message: string) {
+    setErrorField(field);
+    setError(message);
+  }
+
+  function clearError() {
+    setErrorField(null);
+    setError(null);
+  }
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    clearError();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError(t("auth.email.invalid"));
+      fail("email", t("auth.email.invalid"));
       return;
     }
     setBusy(true);
     const res = await signInWithEmail(email);
     setBusy(false);
-    if (res.error) setError(res.error);
+    if (res.error) fail("email", describeError(res.error));
     else setSent(true);
+  }
+
+  async function handleGoogle() {
+    clearError();
+    setBusy(true);
+    const res = await signInWithGoogle();
+    setBusy(false);
+    // On success the browser is redirected away, so we only get here on failure.
+    if (res.error) fail("google", describeError(res.error));
   }
 
   return (
@@ -51,9 +79,17 @@ export default function LoginPage() {
           </div>
         ) : (
           <>
+            {error && (
+              <p role="alert" className="status-chip status-chip-error mb-4">
+                <span aria-hidden="true">!</span>
+                {error}
+              </p>
+            )}
+
             <button
               type="button"
-              onClick={() => signInWithGoogle()}
+              onClick={handleGoogle}
+              disabled={busy}
               className="btn-secondary btn-md w-full"
             >
               <GoogleIcon />
@@ -82,16 +118,10 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t("auth.email.placeholder")}
-                  className={`input ${error ? "input-error" : ""}`}
-                  aria-invalid={error ? true : undefined}
+                  className={`input ${errorField === "email" ? "input-error" : ""}`}
+                  aria-invalid={errorField === "email" ? true : undefined}
                   autoComplete="email"
                 />
-                {error && (
-                  <p role="alert" className="status-chip status-chip-error mt-3">
-                    <span aria-hidden="true">!</span>
-                    {error}
-                  </p>
-                )}
                 <button type="submit" disabled={busy} className="btn-primary btn-md mt-4 w-full">
                   {t("auth.email.send")}
                 </button>

@@ -27,6 +27,11 @@ type PlanContextValue = {
   entries: Entries;
   saving: boolean;
   saved: boolean;
+  /**
+   * True when the user is signed in but the cloud is unreachable. The plan is
+   * still usable and still saved locally — it just is not syncing.
+   */
+  cloudOffline: boolean;
   /** Replace the questionnaire settings (also used to add custom habits). */
   updateSettings: (settings: Settings) => void;
   /** Set a single cell value for a given week/habit/day. */
@@ -44,8 +49,15 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<Entries>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [cloudOffline, setCloudOffline] = useState(false);
 
   const skipNextPersist = useRef(true);
+  /**
+   * Cleared when a cloud read fails. While false we never write to the cloud:
+   * we could not read the stored row, so pushing this device's state could
+   * overwrite a good plan with a stale or empty one.
+   */
+  const cloudWritable = useRef(true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -63,24 +75,41 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       const supa = getSupabase();
 
       if (user && supa) {
-        const remote = await fetchUserPlan(supa, user.id);
+        const res = await fetchUserPlan(supa, user.id);
         if (cancelled) return;
 
-        if (remote && isValidSettings(remote.settings)) {
-          setSettings(remote.settings);
-          setEntries(remote.entries ?? {});
-          saveSettings(remote.settings);
-          saveEntries(remote.entries ?? {});
-        } else if (isValidSettings(localSettings)) {
-          // Guest had a plan locally — migrate it to the cloud on first sign-in.
-          setSettings(localSettings);
+        if (res.status === "error") {
+          // Backend unreachable. We do not know what is stored, so fall back to
+          // this device's copy and keep it: blanking the plan here (or pushing
+          // an empty state up once the backend returns) would destroy it.
+          cloudWritable.current = false;
+          setCloudOffline(true);
+          setSettings(isValidSettings(localSettings) ? localSettings : null);
           setEntries(localEntries);
-          await upsertUserPlan(supa, user.id, localSettings, localEntries);
         } else {
-          setSettings(null);
-          setEntries({});
+          cloudWritable.current = true;
+          setCloudOffline(false);
+
+          const remote = res.status === "ok" ? res.plan : null;
+
+          if (remote && isValidSettings(remote.settings)) {
+            setSettings(remote.settings);
+            setEntries(remote.entries ?? {});
+            saveSettings(remote.settings);
+            saveEntries(remote.entries ?? {});
+          } else if (isValidSettings(localSettings)) {
+            // Guest had a plan locally — migrate it to the cloud on first sign-in.
+            setSettings(localSettings);
+            setEntries(localEntries);
+            await upsertUserPlan(supa, user.id, localSettings, localEntries);
+          } else {
+            setSettings(null);
+            setEntries({});
+          }
         }
       } else {
+        cloudWritable.current = true;
+        setCloudOffline(false);
         setSettings(isValidSettings(localSettings) ? localSettings : null);
         setEntries(localEntries);
       }
@@ -111,15 +140,23 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     saveEntries(entries);
 
     const supa = getSupabase();
-    if (user && supa && settings) {
+    if (user && supa && settings && cloudWritable.current) {
       setSaving(true);
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(async () => {
-        await upsertUserPlan(supa, user.id, settings, entries);
+        const res = await upsertUserPlan(supa, user.id, settings, entries);
         setSaving(false);
-        flashSaved();
+        if (res.ok) {
+          setCloudOffline(false);
+          flashSaved();
+        } else {
+          // Don't claim "saved" — the change only made it to this device.
+          cloudWritable.current = false;
+          setCloudOffline(true);
+        }
       }, 600);
-    } else {
+    } else if (cloudWritable.current) {
+      // Guest (or no backend configured): local-only really is saved.
       flashSaved();
     }
   }, [settings, entries, ready, user, flashSaved]);
@@ -154,7 +191,17 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <PlanContext.Provider
-      value={{ ready, settings, entries, saving, saved, updateSettings, setEntry, reset }}
+      value={{
+        ready,
+        settings,
+        entries,
+        saving,
+        saved,
+        cloudOffline,
+        updateSettings,
+        setEntry,
+        reset,
+      }}
     >
       {children}
     </PlanContext.Provider>

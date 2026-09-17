@@ -23,7 +23,17 @@ import { generatePlanPdf, PdfRow } from "@/lib/pdf";
 export default function PlanPage() {
   const { t, lang } = useLang();
   const router = useRouter();
-  const { ready, settings, entries, saving, saved, updateSettings, setEntry, reset } = usePlan();
+  const {
+    ready,
+    settings,
+    entries,
+    saving,
+    saved,
+    cloudOffline,
+    updateSettings,
+    setEntry,
+    reset,
+  } = usePlan();
 
   const [weekStart, setWeekStart] = useState<string>(() => isoDate(mondayOf(new Date())));
 
@@ -121,6 +131,14 @@ export default function PlanPage() {
             🌱
           </span>
           <p className="mt-6 type-body-lg text-ink">{t("plan.noPlan")}</p>
+          {cloudOffline && (
+            // Otherwise a signed-in user whose device has no local copy would
+            // read this as "my plan is gone" rather than "we can't reach it".
+            <p role="status" className="status-chip status-chip-warning mt-4">
+              <span aria-hidden="true">⚠</span>
+              {t("plan.offlineEmpty")}
+            </p>
+          )}
           <Link href="/questionnaire" className="btn-primary btn-lg mt-6">
             {t("plan.createFirst")}
           </Link>
@@ -156,6 +174,11 @@ export default function PlanPage() {
           <span aria-live="polite" className="min-w-[5rem] text-right">
             {saving ? (
               <span className="type-caption text-muted">…</span>
+            ) : cloudOffline ? (
+              <span className="status-chip status-chip-warning" title={t("plan.offline")}>
+                <span aria-hidden="true">⚠</span>
+                {t("plan.offline")}
+              </span>
             ) : saved ? (
               <span className="status-chip status-chip-success">
                 <span aria-hidden="true">✓</span>
